@@ -1,5 +1,7 @@
 import Data.List (sortOn, group)
 import Control.Applicative (Applicative(liftA2))
+import Control.Arrow ( Arrow((&&&)) )
+
 --1
 myLast :: [c] -> c
 myLast = head . reverse
@@ -57,3 +59,9 @@ pack xs = takeWhile (head xs ==) xs : pack (dropWhile (head xs ==) xs)
 --10
 encode :: Eq b => [b] -> [(Int, b)]
 encode = map (\l -> (length l, head l)) . pack
+
+encode2 :: Eq b => [b] -> [(Int, b)]
+encode2 = map (length &&& head) . group
+
+
+--11
