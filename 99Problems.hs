@@ -1,8 +1,11 @@
-import Data.List (sortOn, group, sortBy)
+import Data.List ( group, groupBy, permutations, sortOn, groupBy )
 import Control.Applicative (Applicative(liftA2))
 import Control.Arrow
-import Data.Ord (Down(Down), comparing)
+import Data.Ord (Down(Down))
 import Data.Tuple (swap)
+import Data.Functor
+import System.Random ( randomRIO )
+import Control.Monad ( replicateM )
 
 --1
 myLast :: [c] -> c
@@ -144,3 +147,47 @@ removeAt n xs = (head $ take n xs, dropNth xs n)
 
 removeAt2 :: Int -> [c] -> (c, [c])
 removeAt2 = curry (head . uncurry take &&& uncurry (flip dropNth))
+
+--21
+insertAt :: a -> [a] -> Int -> [a]
+insertAt e xs i = uncurry ((++) <$> (++[e])) $ split xs (i-1)
+
+--22
+range :: Enum a => a -> a -> [a]
+range i j = [i..j]
+
+--23
+rndSelect :: [a] -> Int -> IO [a]
+rndSelect xs r = map (xs!!) <$> replicateM r (randomRIO (0,length xs - 1::Int))
+
+--24
+rangeRndSelect :: Int -> Int -> IO [Int]
+rangeRndSelect n x = rndSelect [1..x] n
+
+--25
+rndPermu :: [a] -> IO [a]
+rndPermu xs = rndSelect (permutations xs) 1 <&> head
+
+--26
+combinations :: Int -> [a] -> [[a]] --Permutations are not considered
+combinations n xs = filter ((n==) . length) (powerList xs)
+    where powerList [] = [[]]
+          powerList (x:xs) = powerList xs ++ map (x:) (powerList xs)
+
+--27
+combination :: Int -> [a] -> [([a],[a])]
+combination 0 xs     = [([],xs)]
+combination n []     = []
+combination n (x:xs) = [ (x:ys,zs) | (ys,zs) <- combination (n-1) xs ] ++ [ (ys,x:zs) | (ys,zs) <- combination n xs ]
+
+myGroup :: [Int] -> [a] -> [[[a]]]
+myGroup [] _ = [[]]
+myGroup (n:ns) xs = [ g:gs | (g,rs) <- combination n xs,  gs <- myGroup ns rs ]
+
+--28
+lsort :: Foldable t => [t a] -> [t a]
+lsort = sortOn length
+
+lfsort :: Foldable t => [t a] -> [t a]
+lfsort xs = concat $ sortOn length $ groupBy (\x y -> length x == length y) $ sortOn length xs
+
