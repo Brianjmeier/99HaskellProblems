@@ -1,4 +1,4 @@
-import Data.List ( group, groupBy, permutations, sortOn, groupBy )
+import Data.List ( group, groupBy, permutations, sortOn, groupBy, find )
 import Control.Applicative (Applicative(liftA2))
 import Control.Arrow
 import Data.Ord (Down(Down))
@@ -6,6 +6,7 @@ import Data.Tuple (swap)
 import Data.Functor
 import System.Random ( randomRIO )
 import Control.Monad ( replicateM )
+import Data.Maybe (fromJust)
 
 --1
 myLast :: [c] -> c
@@ -190,4 +191,57 @@ lsort = sortOn length
 
 lfsort :: Foldable t => [t a] -> [t a]
 lfsort xs = concat $ sortOn length $ groupBy (\x y -> length x == length y) $ sortOn length xs
+
+--31
+isPrime :: Integral a => a -> Bool
+isPrime n = length [d | d <- [1..floor $ sqrt (fromIntegral n)], n `mod` d == 0] == 1
+
+--32
+myGcd :: Integral t => t -> t -> t
+myGcd a 0 = abs a
+myGcd a b = myGcd b (a `mod` b)
+
+--33
+coprime :: Integral a => a -> a -> Bool
+coprime a b = 1 == myGcd a b
+
+--34
+totient :: Integral a => a -> Int
+totient n = length [ t | t <- [1..n-1], coprime t n ]
+
+--35
+primeFactors :: Int -> [Int]
+primeFactors n = concatMap (uncurry $ flip replicate) $ primeFactorsMult n
+
+primes :: [Int]
+primes = filterPrimes [2..]
+    where filterPrimes (p:xs) = p:filterPrimes [ x | x <- xs, mod x p /= 0 ]
+
+--36
+primeFactorsMult :: Int -> [(Int, Int)]
+primeFactorsMult x = [(n, m n) | n <- takeWhile (<= x) primes, m n /= 0]
+    where m n = maximum [ e | e <- [0..n], x `mod` n^e == 0]
+
+--37
+phi :: Int -> Int
+phi n = foldl (\a (p,e) -> a * (p-1) * p ^ (e-1)) 1 $ primeFactorsMult n
+
+phi2 :: Int -> Int
+phi2 n = product [(p - 1) * p ^ (c - 1) | (p, c) <- primeFactorsMult n]
+
+--39
+primesR :: Int -> Int -> [Int]
+primesR i j = [ p | p <- take j primes, i <= p && p <= j ]
+
+--40
+goldbach :: Int -> (Int, Int)
+goldbach n = head [ (p, n-p) | p <- primes, isPrime (n-p) ]
+
+--41
+
+goldbachList :: Int -> Int -> [(Int, Int)]
+goldbachList i j = [ goldbach e | e <- [i..j], even e ]
+
+goldbachList' :: Int -> Int -> Int -> [(Int, Int)]
+goldbachList' i j l = filter (\(a,b) -> a > l && b > l) $ goldbachList i j 
 
